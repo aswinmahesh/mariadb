@@ -1,14 +1,15 @@
 FROM mariadb:latest
 
-ADD sql/ /docker-entrypoint-initdb.d
+# Copy a custom MySQL configuration file to the container
+COPY my.cnf /etc/mysql/conf.d/
 
-ENV MYSQL_ROOT_PASSWORD test123
-ENV MYSQL_DATABASE testDB
-ENV MYSQL_USER toto
-ENV MYSQL_PASSWORD test123
+# Copy a custom entrypoint script to the container
+COPY entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/entrypoint.sh
+ENTRYPOINT ["entrypoint.sh"]
 
-RUN apt-get update && apt-get -y install vim
-
+# Expose the default MariaDB port
 EXPOSE 3306
 
+# Set the default command to run when the container starts
 CMD ["mysqld"]

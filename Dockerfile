@@ -1,31 +1,14 @@
-# Build container
-FROM alpine:3.14 AS builder
+FROM mariadb:latest
 
-# Install build dependencies
-RUN apk add --no-cache build-base mariadb-dev
+ADD sql/ /docker-entrypoint-initdb.d
 
-# Download and extract the MariaDB source code
-WORKDIR /tmp
-RUN wget https://downloads.mariadb.org/f/mariadb-10.6.5/source/mariadb-10.6.5.tar.gz \
-    && tar xzf mariadb-10.6.5.tar.gz
+ENV MYSQL_ROOT_PASSWORD test123
+ENV MYSQL_DATABASE testDB
+ENV MYSQL_USER toto
+ENV MYSQL_PASSWORD test123
 
-# Build MariaDB from source
-WORKDIR /tmp/mariadb-10.6.5
-RUN cmake . \
-    && make -j$(nproc) \
-    && make install DESTDIR=/tmp/install
+RUN apt-get update && apt-get -y install vim
 
-# Final container
-FROM alpine:3.14
-
-# Copy the MariaDB binaries from the build container
-COPY --from=builder /tmp/install /
-
-# Copy the custom configuration file to the container
-COPY my.cnf /etc/mysql/my.cnf
-
-# Set the default command to run when the container starts
-CMD ["mysqld"]
-
-# Expose the default MariaDB port
 EXPOSE 3306
+
+CMD ["mysqld"]
